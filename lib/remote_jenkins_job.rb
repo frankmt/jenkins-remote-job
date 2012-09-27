@@ -51,8 +51,16 @@ class RemoteJenkinsJob
   end
 
   def get_last_build
-    json = JSON.parse(open(@job_uri+"/api/json", @options).read)
-    json['lastBuild']
+    retries = 5
+    begin
+      while retries > 0
+        retries -= 1
+        json = JSON.parse(open(@job_uri+"/api/json", @options).read)
+        return json['lastBuild']
+      end
+    rescue Timeout::Error => e
+      retry
+    end
   end
 
   def get_new_build(url)
