@@ -38,7 +38,6 @@ class RemoteJenkinsJob
 
     puts ""
     puts "New build started: #{last_build['url']}"
-
     while (latest_build = get_new_build(last_build['url']))['building'] do
       print '.'
       $stdout.flush
@@ -57,9 +56,7 @@ class RemoteJenkinsJob
   end
 
   def get_new_build(url)
-    uri = URI.parse(url+'api/json')
-    uri.userinfo=''
-    JSON.parse(open(uri.to_s, @options).read)
+    JSON.parse(open(URI.parse(url+'api/json').to_s, @options).read)
   end
 
   def post_build_request
