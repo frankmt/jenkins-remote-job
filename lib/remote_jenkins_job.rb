@@ -50,21 +50,26 @@ class RemoteJenkinsJob
     exit(1) unless latest_build['result'] == 'SUCCESS'
   end
 
-  def get_last_build
-    retries = 5
+  def get_json(url)
+    json_url = URI.parse("#{url}#{url[-1] == '/' ? '' : '/'}api/json").to_s
+    tries = 5
     begin
-      while retries > 0
-        retries -= 1
-        json = JSON.parse(open(@job_uri+"/api/json", @options).read)
-        return json['lastBuild']
-      end
+      tries -= 1
+      return open(URI.parse(json_url).to_s, @options).read
     rescue Timeout::Error => e
-      retry
+      retry if tries > 0
+      raise
     end
   end
 
+  private :get_json
+
+  def get_last_build
+    JSON.parse(get_json(@job_uri))['lastBuild']
+  end
+
   def get_new_build(url)
-    JSON.parse(open(URI.parse(url+'api/json').to_s, @options).read)
+    JSON.parse(get_json(url))
   end
 
   def post_build_request
